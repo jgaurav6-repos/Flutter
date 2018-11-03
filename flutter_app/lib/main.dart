@@ -9,12 +9,7 @@ class MyApp extends StatelessWidget {
     // TODO: implement build
     return MaterialApp(
       title: "Flutter App",
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text("My first app"),
-        ),
-        body: Center(child: RandomWordsGenerator()),
-      ),
+      home: RandomWordsGenerator(),
     );
   }
 }
@@ -29,9 +24,10 @@ class RandomWordsGeneratorState extends State<RandomWordsGenerator> {
 
   @override
   Widget build(BuildContext context) {
-    WordPair wordPair = WordPair.random();
-    // TODO: implement build
-    return Text(wordPair.asPascalCase);
+    return Scaffold(
+      appBar: AppBar(title: Text("Startup name generator")),
+      body: _buildSuggestions(),
+    );
   }
 
   Widget _buildSuggestions() {
@@ -47,6 +43,15 @@ class RandomWordsGeneratorState extends State<RandomWordsGenerator> {
         }
         return _buildRow(_suggestions[index]);
       },
+    );
+  }
+
+  Widget _buildRow(WordPair pair) {
+    return ListTile(
+      title: Text(
+        pair.asPascalCase,
+        style: _biggerFont,
+      ),
     );
   }
 }
