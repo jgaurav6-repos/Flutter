@@ -4,66 +4,55 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  @override
-  MyAppState createState() => new MyAppState();
-}
-
-class MyAppState extends State<MyApp> {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Widget Test",
-      home: Scaffold(
-        appBar: AppBar(
-          actions: <Widget>[
-            new IconButton(
-                icon: const Icon(Icons.list), onPressed: _changeContent)
-          ],
-          title: Text("Widgets"),
-        ),
-        body: ContainerTestWidget(),
-      ),
-    );
-  }
-
-  void _changeContent() {
-    ContainerTestWidgetState obj = new ContainerTestWidgetState();
-    obj.textToShow = "SECOND TEXT";
+        title: "Ananda",
+        home: Scaffold(
+          appBar: AppBar(
+            title: Text("Ananda"),
+          ),
+          body: SingleRow(),
+        ));
   }
 }
 
-class ContainerTestWidget extends StatefulWidget {
-  @override
-  ContainerTestWidgetState createState() => new ContainerTestWidgetState();
-}
-
-class ContainerTestWidgetState extends State<ContainerTestWidget> {
-  var textToShow = "FIRST SDFDFKJDFKDJ";
-
+class SingleRow extends StatelessWidget {
+  var _rowHeight = 80.0;
+  var _circularRadius = 10.0;
+  var _sidePaddings = 8.0;
+  var _textStyle = TextStyle(fontSize: 20.0);
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: Text('Deliver features faster', textAlign: TextAlign.left),
+    var currentColor = Colors.redAccent;
 
-          ),
-          Expanded(
-            child: Text('Craft beautiful UIs', textAlign: TextAlign.right),
-          ),
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.contain, // otherwise the logo will be tiny
-              child: const FlutterLogo(),
-            ),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(16.0),
-      width: double.infinity,
-//      alignment: Alignment.centerRight,
-    );
+    return Material(
+        child: Container(
+          height: _rowHeight,
+      padding: EdgeInsets.all(8.0),
+      child: InkWell(
+          borderRadius: BorderRadius.all(Radius.circular(_circularRadius)),
+          splashColor: Colors.green,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                  padding: EdgeInsets.all(_sidePaddings),
+                  child: Icon(
+                    Icons.star,
+                    color: currentColor,
+                    size: 30.0,
+                  )
+//            child: Icon(Icons.star, color: Colors.red[500]),
+                  ),
+              Text(
+                "FIRST ROW",
+                style: _textStyle,
+              )
+            ],
+          )),
+      color: Colors.amber,
+    ));
   }
 }
