@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gradient_widgets/gradient_widgets.dart';
+import 'dart:async';
+import 'dart:collection';
 
 void main() {
   runApp(MyApp());
@@ -9,19 +11,22 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(
-          primarySwatch: Colors.deepOrange
-//          primaryColor: Color(0xFFFEAF83),
-//          primaryColorDark: Color(0xFFF67E3B),
-
-        ),
+        theme: ThemeData(primarySwatch: Colors.deepOrange),
         title: "Ananda Timer",
         home: Scaffold(
           appBar: AppBar(
+            actions: <Widget>[
+              new IconButton(
+                  icon: const Icon(Icons.list), onPressed: _pressedMenu)
+            ],
             title: Text("Ananda Timer"),
           ),
           body: TimerPage(),
         ));
+  }
+
+  void _pressedMenu() {
+    print("TESTED");
   }
 }
 
@@ -31,6 +36,15 @@ class TimerPage extends StatefulWidget {
 }
 
 class TimerPageState extends State<TimerPage> {
+  // Get the total count down value here
+  var totalTime = 100;
+
+  //This variable is updated on each tick of the timer by -1
+  var timeLeft = 100;
+
+  StreamSubscription periodicSub;
+
+  var currentIcon = 0;
   var _textStyleTimeLeftTextView =
       TextStyle(fontSize: 18.0, color: Color(0xFFFF803A));
   var _textStyleTimeLeftValue =
@@ -42,19 +56,19 @@ class TimerPageState extends State<TimerPage> {
   Widget build(BuildContext context) {
     return Container(
       child: Column(
-        children: <Widget>[_row1(), _row2(), _row3()],
+        children: <Widget>[_row1(context), _row2(), _row3()],
       ),
     );
   }
 
-  Widget _row1() {
+  Widget _row1(BuildContext context2) {
     return Container(
         padding: EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
         height: 100.0,
         child: Row(
           children: <Widget>[
             Text(
-              "Time left: ",
+              "Total time:",
               style: _textStyleTimeLeftTextView,
             ),
             Text(
@@ -69,15 +83,37 @@ class TimerPageState extends State<TimerPage> {
                   height: 60.0,
                   child: CircularGradientButton(
                     child: Icon(
-                      Icons.pause,
+                      currentIcon == 0 ? Icons.play_arrow : Icons.pause,
                       size: 25.0,
                     ),
-                    callback: () {},
+                    callback: () {
+                      this.setState(() {
+                        if (currentIcon == 0) {
+                          currentIcon = 1;
+                          periodicSub = new Stream.periodic(
+                                  const Duration(seconds: 1), (v) => v)
+                              .take(totalTime)
+                              .listen(
+                                (count) => this.setState(() {
+                                      timeLeft--;
+                                      for(int i=0; i<MakeListState.test.length; i++){
+                                        if(MakeListState.test[i].values.first > 0){
+                                          MakeListState.test[i] = {MakeListState.test[i].keys.first : MakeListState.test[i].values.first-1};
+                                          return;
+                                        }
+                                      }
+                                    }),
+                              );
+                        } else {
+                          currentIcon = 0;
+                          periodicSub.cancel();
+                        }
+                      });
+                    },
                     gradient: Gradients.hotLinear,
                   ),
                 ),
               ),
-              flex: 1,
             )
           ],
         ));
@@ -86,7 +122,7 @@ class TimerPageState extends State<TimerPage> {
   Widget _row2() {
     return Center(
         child: Text(
-      "10",
+      timeLeft.toString(),
       style: _countDownTextValue,
     ));
   }
@@ -99,17 +135,34 @@ class TimerPageState extends State<TimerPage> {
 }
 
 class MakeList extends StatefulWidget {
+  static MakeListState of(BuildContext context) =>
+      context.ancestorStateOfType(const TypeMatcher<MakeListState>());
+
   @override
   MakeListState createState() => new MakeListState();
 }
 
 class MakeListState extends State<MakeList> {
+  void testHere(BuildContext context) {
+    print(context);
+  }
+
   var _rowHeight = 75.0;
   var _textStyle = TextStyle(fontSize: 20.0, color: Color(0xFF000000));
   var _indexStyle = TextStyle(fontSize: 20.0, color: Color(0xFFFEAF83));
 
+  static var test = [
+    {"Workout": 5},
+    {"Rest": 15},
+    {"Cycles": 15},
+    {"Rest": 15},
+    {"Prepare": 5},
+    {"FUCK": 25},
+    {"THIS": 35},
+    {"SHIT": 15},
+  ];
+
   var activities = [
-    "Prepare",
     "Workout",
     "Rest",
     "Cycles",
@@ -125,16 +178,21 @@ class MakeListState extends State<MakeList> {
     return ListView.builder(
 //      padding: EdgeInsets.all(8.0),
       itemBuilder: (context, i) {
-        if (i >= activities.length) {
+        if (i >= activities.length * 2) {
           return null;
         }
+        if (i.isOdd) {
+//          print(test[(i/2).round()].val.first);
+          return Divider();
+        }
 
-        return _singleRow(activities[i], i);
+        return _singleRow(test[(i / 2).round()].keys.first, (i / 2).round(),
+            test[(i / 2).round()].values.first);
       },
     );
   }
 
-  Widget _singleRow(String activity, int index) {
+  Widget _singleRow(String activity, int index, durationOfActivity) {
     return Material(
         child: Container(
       height: _rowHeight,
@@ -153,19 +211,19 @@ class MakeListState extends State<MakeList> {
                       ((index + 1).toString() + "."),
                       style: _indexStyle,
                     )),
-                Padding(
-                    padding: EdgeInsets.fromLTRB(0.0, 16.0, 16.0, 16.0),
-                    child: Text(
-                      activity,
-                      style: _textStyle,
-                    )),
                 Expanded(
-                  child: Align(
-                    alignment: Alignment(0.7, 0.0),
-                    child: Text(
-                      "10",
-                      style: TextStyle(fontSize: 22.0),
-                    ),
+                  child: Padding(
+                      padding: EdgeInsets.fromLTRB(0.0, 16.0, 16.0, 16.0),
+                      child: Text(
+                        activity,
+                        style: _textStyle,
+                      )),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 32.0),
+                  child: Text(
+                    durationOfActivity.toString(),
+                    style: TextStyle(fontSize: 22.0),
                   ),
                 )
               ],
@@ -173,11 +231,7 @@ class MakeListState extends State<MakeList> {
           ],
         ),
         onTap: () {
-          setState(() {
-//            Scaffold.of(context).showSnackBar(new SnackBar(
-//              content: new Text("SHOWED"),
-//            ));
-          });
+          setState(() {});
         },
       ),
 //          color: bgColor,
